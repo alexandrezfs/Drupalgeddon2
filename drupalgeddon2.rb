@@ -3,6 +3,7 @@
 # [CVE-2018-7600] Drupal < 7.58 / < 8.3.9 / < 8.4.6 / < 8.5.1 - 'Drupalgeddon2' (SA-CORE-2018-002) ~ https://github.com/dreadlocked/Drupalgeddon2/
 #
 # Authors:
+# - Alexandre Nguyen ~ https://www.alexandrenguyen.fr // https://github.com/alexandrezfs
 # - Hans Topo ~ https://github.com/dreadlocked // https://twitter.com/_dreadlocked
 # - g0tmi1k   ~ https://blog.g0tmi1k.com/ // https://twitter.com/g0tmi1k
 #
@@ -163,8 +164,12 @@ url.each do|uri|
     # Try and get version from the file contents
     $drupalverion = response.body.match(/Drupal (.*),/).to_s.slice(/Drupal (.*),/, 1).to_s.strip
 
+    puts "[+] try GET drupal version: #{drupalverion}"
+
     # If not, try and get it from the URL
     $drupalverion = uri.match(/core/)? "8.x" : "7.x" if $drupalverion.empty?
+
+    puts "[+] try GET drupal version again: #{drupalverion}"
 
     # Done!
     break

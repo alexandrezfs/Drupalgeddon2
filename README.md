@@ -10,6 +10,7 @@ Supports:
 The `user/register` method was chosen for Drupal v8.x, as it will return `HTTP 200`, and render the output in the `data` JSON response _(un-comment the code for `timezone`/`#lazy_builder` method, which will return `HTTP 500` & blind!)_ _([More Information](https://gist.github.com/g0tmi1k/7476eec3f32278adc07039c3e5473708))_.
 
 Authors:
+- Forked by Alexandre Nguyen
 - [Hans Topo](https://github.com/dreadlocked)  _([@\_dreadlocked](https://twitter.com/_dreadlocked))_
 - [g0tmi1k](https://blog.g0tmi1k.com/) _([@g0tmi1k](https://twitter.com/g0tmi1k))_
 
